@@ -1,42 +1,34 @@
+import sys
+import os
 from adapters.rabbitmq_adapter import RabbitMQAdapter
-from adapters.dynamodb_adapter import DynamoDBAdapter
+from adapters.mongodb_adapter import MongoDBAdapter
 from adapters.flask_adapter import FlaskAPI
 from domain.services import SensorService
 import json
 from dotenv import load_dotenv
-import os
 
 def main():
-    # Cargar variables de entorno
     load_dotenv()
 
-    # Configurar DynamoDB (lee las variables de entorno automáticamente)
-    dynamo_adapter = DynamoDBAdapter()
+    # Configurar MongoDB
+    mongo_adapter = MongoDBAdapter()
+    if mongo_adapter.collection is None:  # Comparar con None
+        print("Error: No se pudo inicializar MongoDB. Saliendo...")
+        return
 
     # Configurar RabbitMQ
     rabbit_adapter = RabbitMQAdapter(queue_name='datos_sensores')
 
     # Configurar el servicio de dominio
-    sensor_service = SensorService(repository=dynamo_adapter)
+    sensor_service = SensorService(repository=mongo_adapter)
 
     # Configurar la API
-    api = FlaskAPI(repository=dynamo_adapter)
+    api = FlaskAPI(repository=mongo_adapter)
 
     # Consumir mensajes de RabbitMQ
     def callback(ch, method, properties, body):
-        try:
-            data = json.loads(body)
-            print(f"Datos recibidos de la cola: {data}")
-            # Asegúrate de que los valores sean números válidos
-            sensor_data = {
-                "temperatura": float(data["temperatura"]),
-                "humedad": float(data["humedad"]),
-                "luminosidad": float(data["luminosidad"])
-            }
-            sensor_service.process_data(sensor_data)
-        except (ValueError, KeyError) as e:
-            print(f"Error al procesar los datos: {e}")
-
+        data = json.loads(body)
+        sensor_service.process_data(data)
 
     # Iniciar la API en un hilo separado
     import threading

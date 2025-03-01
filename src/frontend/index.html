@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Sensores</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .data-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .data-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 200px;
+            text-align: center;
+        }
+        .data-card h2 {
+            margin: 0;
+            font-size: 18px;
+            color: #555;
+        }
+        .data-card p {
+            margin: 10px 0 0;
+            font-size: 24px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dashboard de Sensores</h1>
+    <div>
+        <label for="field">Campo:</label>
+        <select id="field">
+            <option value="temperatura">Temperatura</option>
+            <option value="humedad">Humedad</option>
+            <option value="luminosidad">Luminosidad</option>
+        </select>
+        <label for="value">Valor:</label>
+        <input type="number" id="value" step="0.01">
+        <button onclick="filterData()">Filtrar</button>
+    </div>
+    <div class="data-container" id="data-container">
+        <!-- Los datos se cargarán aquí dinámicamente -->
+    </div>
+
+    <script>
+        // Función para obtener los datos de la API
+        async function fetchData() {
+            try {
+                const response = await fetch('http://localhost:8000/datos');
+                if (!response.ok) {
+                    throw new Error('Error al obtener los datos');
+                }
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Función para filtrar los datos
+        async function filterData() {
+            const field = document.getElementById('field').value;
+            const value = parseFloat(document.getElementById('value').value);
+
+            if (!field || isNaN(value)) {
+                alert('Por favor, ingresa un campo y un valor válido.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5000/datos/filtrar?field=${field}&value=${value}`);
+                if (!response.ok) {
+                    throw new Error('Error al filtrar los datos');
+                }
+                const data = await response.json();
+                displayData(data);
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Función para mostrar los datos en el dashboard
+        function displayData(data) {
+            const container = document.getElementById('data-container');
+            container.innerHTML = '';  // Limpiar el contenedor
+
+            data.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'data-card';
+
+                const timestamp = document.createElement('h2');
+                timestamp.textContent = new Date(item.timestamp).toLocaleString();
+                card.appendChild(timestamp);
+
+                const temperatura = document.createElement('p');
+                temperatura.textContent = `Temperatura: ${item.temperatura}°C`;
+                card.appendChild(temperatura);
+
+                const humedad = document.createElement('p');
+                humedad.textContent = `Humedad: ${item.humedad}%`;
+                card.appendChild(humedad);
+
+                const luminosidad = document.createElement('p');
+                luminosidad.textContent = `Luminosidad: ${item.luminosidad} lux`;
+                card.appendChild(luminosidad);
+
+                container.appendChild(card);
+            });
+        }
+
+        // Cargar los datos al iniciar la página
+        fetchData();
+    </script>
+</body>
+</html>
