@@ -32,4 +32,4 @@ class FlaskAPI(API):
             return jsonify(data)
 
     def start(self):
-        self.app.run(port=8000)
+        self.app.run(port=8029)
