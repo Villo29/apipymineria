@@ -1,11 +1,12 @@
 import sys
 import os
+import json
+import threading
+from dotenv import load_dotenv
 from adapters.rabbitmq_adapter import RabbitMQAdapter
 from adapters.mongodb_adapter import MongoDBAdapter
 from adapters.flask_adapter import FlaskAPI
 from domain.services import SensorService
-import json
-from dotenv import load_dotenv
 
 def main():
     load_dotenv()
@@ -31,7 +32,6 @@ def main():
         sensor_service.process_data(data)
 
     # Iniciar la API en un hilo separado
-    import threading
     threading.Thread(target=api.start, daemon=True).start()
 
     # Iniciar el consumidor de RabbitMQ

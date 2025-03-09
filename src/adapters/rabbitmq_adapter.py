@@ -1,10 +1,11 @@
 import pika
 from ports.message_queue import MessageQueue
+import os
 
 class RabbitMQAdapter(MessageQueue):
-    def __init__(self, queue_name: str, host: str = 'localhost'):
+    def __init__(self, queue_name: str, host: str = None):
         self.queue_name = queue_name
-        self.host = host
+        self.host = host or os.getenv('RABBITMQ_HOST')
 
     def consume(self, callback):
         try:

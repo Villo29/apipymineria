@@ -62,7 +62,7 @@
         // Función para obtener los datos de la API
         async function fetchData() {
             try {
-                const response = await fetch('http://localhost:8000/datos');
+                const response = await fetch('http://localhost:8029/datos');
                 if (!response.ok) {
                     throw new Error('Error al obtener los datos');
                 }
@@ -84,7 +84,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:5000/datos/filtrar?field=${field}&value=${value}`);
+                const response = await fetch(`http://localhost:8029/datos/filtrar?field=${field}&value=${value}`);
                 if (!response.ok) {
                     throw new Error('Error al filtrar los datos');
                 }
