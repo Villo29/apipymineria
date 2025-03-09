@@ -84,4 +84,4 @@ class FlaskAPI(API):
                 return jsonify({"error": str(e)}), 400
 
     def start(self):
-        self.app.run(port=8029)
+        self.app.run(host='0.0.0.0', port=8029, debug=True)
