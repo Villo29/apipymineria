@@ -7,4 +7,4 @@ class SensorService:
 
     def process_data(self, data: dict):
         sensor_data = SensorData(**data)
-        self.repository.create(sensor_data.__dict__)  # Guardar los datos en MongoDB
+        self.repository.create(sensor_data.__dict__)

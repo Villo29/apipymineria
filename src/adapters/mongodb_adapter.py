@@ -16,9 +16,8 @@ class MongoDBAdapter(Repository):
         self.collection = None
 
         try:
-            # Conectar a MongoDB Atlas
             self.client = MongoClient(self.uri)
-            self.client.admin.command('ping')  # Verificar conexión
+            self.client.admin.command('ping')
             self.db = self.client[self.database_name]
             self.collection = self.db[self.collection_name]
             print("Conexión exitosa a MongoDB Atlas")
@@ -28,7 +27,7 @@ class MongoDBAdapter(Repository):
             print(f"Error inesperado al conectar a MongoDB Atlas: {e}")
 
     def get_all(self):
-        if self.collection is None:  # Comparar con None
+        if self.collection is None:
             print("Error: No se pudo inicializar la colección de MongoDB")
             return []
 
@@ -77,10 +76,16 @@ class MongoDBAdapter(Repository):
             return None
 
         try:
-            data["timestamp"] = datetime.utcnow()  # Agregar timestamp automático
+            # Verificar si los datos son nulos o en cero
+            for key, value in data.items():
+                if value is None or value == 0:
+                    data[key] = None
+            # Agregar timestamp automático
+            data["timestamp"] = datetime.utcnow()
             result = self.collection.insert_one(data)
             if result.inserted_id:
-                data["_id"] = str(result.inserted_id)  # Convertir ObjectId a string
+                # Convertir ObjectId a string
+                data["_id"] = str(result.inserted_id)
                 return data
             else:
                 return None
@@ -102,7 +107,7 @@ class MongoDBAdapter(Repository):
                 {"$set": updated_data}
             )
             if result.modified_count > 0:
-                updated_data["_id"] = id  # Mantener el ID original
+                updated_data["_id"] = id
                 return updated_data
             else:
                 return None

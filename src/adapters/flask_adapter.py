@@ -5,7 +5,7 @@ from ports.api import API
 class FlaskAPI(API):
     def __init__(self, repository):
         self.app = Flask(__name__)
-        CORS(self.app, resources={r"/*": {"origins": "*"}})  # Habilitar CORS para todas las rutas
+        CORS(self.app, resources={r"/*": {"origins": "*"}})
         self.repository = repository
         self.setup_routes()
 
@@ -28,24 +28,23 @@ class FlaskAPI(API):
         # Filtrar datos por campo y valor
         @self.app.route('/datos/filtrar', methods=['GET'])
         def filter():
-            field = request.args.get('field')  # Obtener el campo a filtrar
-            value = request.args.get('value')  # Obtener el valor a filtrar
+            field = request.args.get('field')
+            value = request.args.get('value')
 
             if not field or not value:
                 return jsonify({"error": "Se requieren los parámetros 'field' y 'value'"}), 400
 
             try:
-                value = float(value)  # Convertir el valor a float
+                value = float(value)
             except ValueError:
                 return jsonify({"error": "El valor debe ser un número"}), 400
 
             data = self.repository.filter_by(field, value)
             return jsonify(data)
 
-        # Crear un nuevo dato
         @self.app.route('/datos', methods=['POST'])
         def create():
-            new_data = request.json  # Obtener los datos del cuerpo de la solicitud
+            new_data = request.json
             if not new_data:
                 return jsonify({"error": "Se requieren datos en el cuerpo de la solicitud"}), 400
 
@@ -58,7 +57,7 @@ class FlaskAPI(API):
         # Actualizar un dato existente
         @self.app.route('/datos/<string:id>', methods=['PUT'])
         def update(id):
-            updated_data = request.json  # Obtener los datos actualizados del cuerpo de la solicitud
+            updated_data = request.json
             if not updated_data:
                 return jsonify({"error": "Se requieren datos en el cuerpo de la solicitud"}), 400
 
