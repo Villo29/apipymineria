@@ -34,7 +34,6 @@ def main():
             sensor_service.process_data(data)
         except Exception as e:
             print(f"Error al procesar los datos: {e}")
-            # Aquí puedes manejar el error según sea necesario, por ejemplo, enviando un mensaje de error a otra cola
 
     threading.Thread(target=api.start, daemon=True).start()
 
