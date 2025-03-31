@@ -62,7 +62,7 @@
         // Función para obtener los datos de la API
         async function fetchData() {
             try {
-                const response = await fetch('http://3.226.1.115:8029/datos');
+                const response = await fetch('http://127.0.0.1:8029/datos');
                 if (!response.ok) {
                     throw new Error('Error al obtener los datos');
                 }
@@ -108,17 +108,43 @@
                 timestamp.textContent = new Date(item.timestamp).toLocaleString();
                 card.appendChild(timestamp);
 
+                const estadoConexion = document.createElement('p');
+                estadoConexion.textContent = `Estado: ${item.estado_conexion}`;
+                estadoConexion.style.color = item.estado_conexion === 'conectado' ? 'green' : 'red';
+                estadoConexion.style.fontWeight = 'bold';
+                card.appendChild(estadoConexion);
+
+                // Agregar alerta visual si está desconectado
+                if (item.estado_conexion === 'desconectado') {
+                    const alerta = document.createElement('div');
+                    alerta.style.backgroundColor = '#ffebee';
+                    alerta.style.color = '#c62828';
+                    alerta.style.padding = '10px';
+                    alerta.style.margin = '10px 0';
+                    alerta.style.borderRadius = '4px';
+                    alerta.textContent = '⚠️ ALERTA: Sensor desconectado';
+                    card.appendChild(alerta);
+                }
+
                 const temperatura = document.createElement('p');
-                temperatura.textContent = `Temperatura: ${item.temperatura}°C`;
+                temperatura.textContent = `Temperatura: ${item.temperatura ?? 'N/A'}°C`;
+                temperatura.style.color = item.temperatura === null || item.temperatura === 0 ? 'red' : 'inherit';
                 card.appendChild(temperatura);
 
                 const humedad = document.createElement('p');
-                humedad.textContent = `Humedad: ${item.humedad}%`;
+                humedad.textContent = `Humedad: ${item.humedad ?? 'N/A'}%`;
+                humedad.style.color = item.humedad === null || item.humedad === 0 ? 'red' : 'inherit';
                 card.appendChild(humedad);
 
                 const luminosidad = document.createElement('p');
-                luminosidad.textContent = `Luminosidad: ${item.luminosidad} lux`;
+                luminosidad.textContent = `Luminosidad: ${item.luminosidad ?? 'N/A'} lux`;
+                luminosidad.style.color = item.luminosidad === null || item.luminosidad === 0 ? 'red' : 'inherit';
                 card.appendChild(luminosidad);
+
+                const humedadSuelo = document.createElement('p');
+                humedadSuelo.textContent = `Humedad Suelo: ${item.humedad_suelo ?? 'N/A'}%`;
+                humedadSuelo.style.color = item.humedad_suelo === null || item.humedad_suelo === 0 ? 'red' : 'inherit';
+                card.appendChild(humedadSuelo);
 
                 container.appendChild(card);
             });
