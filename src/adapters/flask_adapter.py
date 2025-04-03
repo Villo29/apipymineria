@@ -1,13 +1,43 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS  # Importar CORS
+from flask_socketio import SocketIO
 from ports.api import API
+from datetime import datetime
 
 class FlaskAPI(API):
     def __init__(self, repository):
         self.app = Flask(__name__)
         CORS(self.app, resources={r"/*": {"origins": "*"}})
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*")
         self.repository = repository
         self.setup_routes()
+        self.setup_socket_events()
+
+    def setup_socket_events(self):
+        @self.socketio.on('connect')
+        def handle_connect():
+            print('Cliente conectado')
+
+        @self.socketio.on('disconnect')
+        def handle_disconnect():
+            print('Cliente desconectado')
+
+    def serialize_data(self, data):
+        """Serializa los datos para enviarlos por WebSocket"""
+        if isinstance(data, dict):
+            serialized = {}
+            for key, value in data.items():
+                if isinstance(value, datetime):
+                    serialized[key] = value.isoformat()
+                else:
+                    serialized[key] = value
+            return serialized
+        return data
+
+    def emit_new_data(self, data):
+        """Emitir nuevos datos a todos los clientes conectados"""
+        serialized_data = self.serialize_data(data)
+        self.socketio.emit('new_data', serialized_data)
 
     def setup_routes(self):
         # Obtener todos los datos
@@ -50,6 +80,7 @@ class FlaskAPI(API):
 
             try:
                 created_data = self.repository.create(new_data)
+                self.emit_new_data(created_data)
                 return jsonify(created_data), 201
             except Exception as e:
                 return jsonify({"error": str(e)}), 400
@@ -64,6 +95,7 @@ class FlaskAPI(API):
             try:
                 result = self.repository.update(id, updated_data)
                 if result:
+                    self.emit_new_data(result)
                     return jsonify(result)
                 else:
                     return jsonify({"error": "Dato no encontrado"}), 404
@@ -83,4 +115,4 @@ class FlaskAPI(API):
                 return jsonify({"error": str(e)}), 400
 
     def start(self):
-        self.app.run(host='0.0.0.0', port=8029)
+        self.socketio.run(self.app, host='0.0.0.0', port=8029)

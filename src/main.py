@@ -66,7 +66,12 @@ def main():
             for key, value in data.items():
                 if value is None or value == 0 or (isinstance(value, float) and math.isnan(value)):
                     data[key] = None
-            sensor_service.process_data(data)
+            processed_data = sensor_service.process_data(data)
+
+            # Emitir los datos a través de WebSocket
+            if processed_data:
+                api.emit_new_data(processed_data)
+
         except json.JSONDecodeError as e:
             print(f"Error al decodificar JSON: {e}")
             print("Datos recibidos:", body)

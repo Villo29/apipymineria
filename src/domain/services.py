@@ -17,4 +17,4 @@ class SensorService:
                     print(f"⚠️ ALERTA: El sensor {key} está desconectado")
 
         sensor_data = SensorData(**data)
-        self.repository.create(sensor_data.__dict__)
+        return self.repository.create(sensor_data.__dict__)

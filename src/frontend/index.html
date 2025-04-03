@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Sensores</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -39,10 +40,27 @@
             font-size: 24px;
             color: #333;
         }
+        .connection-status {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .connected {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .disconnected {
+            background-color: #ffebee;
+            color: #c62828;
+        }
     </style>
 </head>
 <body>
     <h1>Dashboard de Sensores</h1>
+    <div id="connection-status" class="connection-status disconnected">
+        Desconectado
+    </div>
     <div>
         <label for="field">Campo:</label>
         <select id="field">
@@ -59,6 +77,27 @@
     </div>
 
     <script>
+        // Conectar al WebSocket
+        const socket = io('http://127.0.0.1:8029');
+        const connectionStatus = document.getElementById('connection-status');
+
+        socket.on('connect', () => {
+            console.log('Conectado al servidor WebSocket');
+            connectionStatus.textContent = 'Conectado';
+            connectionStatus.className = 'connection-status connected';
+        });
+
+        socket.on('disconnect', () => {
+            console.log('Desconectado del servidor WebSocket');
+            connectionStatus.textContent = 'Desconectado';
+            connectionStatus.className = 'connection-status disconnected';
+        });
+
+        socket.on('new_data', (data) => {
+            console.log('Nuevos datos recibidos:', data);
+            displayData([data]);
+        });
+
         // Función para obtener los datos de la API
         async function fetchData() {
             try {
@@ -84,7 +123,7 @@
             }
 
             try {
-                const response = await fetch(`http://3.226.1.115:8029/datos/filtrar?field=${field}&value=${value}`);
+                const response = await fetch(`http://127.0.0.1:8029/datos/filtrar?field=${field}&value=${value}`);
                 if (!response.ok) {
                     throw new Error('Error al filtrar los datos');
                 }
@@ -105,26 +144,10 @@
                 card.className = 'data-card';
 
                 const timestamp = document.createElement('h2');
-                timestamp.textContent = new Date(item.timestamp).toLocaleString();
+                // Convertir la fecha ISO a formato local
+                const date = item.timestamp ? new Date(item.timestamp) : new Date();
+                timestamp.textContent = date.toLocaleString();
                 card.appendChild(timestamp);
-
-                const estadoConexion = document.createElement('p');
-                estadoConexion.textContent = `Estado: ${item.estado_conexion}`;
-                estadoConexion.style.color = item.estado_conexion === 'conectado' ? 'green' : 'red';
-                estadoConexion.style.fontWeight = 'bold';
-                card.appendChild(estadoConexion);
-
-                // Agregar alerta visual si está desconectado
-                if (item.estado_conexion === 'desconectado') {
-                    const alerta = document.createElement('div');
-                    alerta.style.backgroundColor = '#ffebee';
-                    alerta.style.color = '#c62828';
-                    alerta.style.padding = '10px';
-                    alerta.style.margin = '10px 0';
-                    alerta.style.borderRadius = '4px';
-                    alerta.textContent = '⚠️ ALERTA: Sensor desconectado';
-                    card.appendChild(alerta);
-                }
 
                 const temperatura = document.createElement('p');
                 temperatura.textContent = `Temperatura: ${item.temperatura ?? 'N/A'}°C`;
