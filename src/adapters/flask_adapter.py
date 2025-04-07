@@ -4,16 +4,18 @@ from flask_socketio import SocketIO
 from ports.api import API
 from datetime import datetime
 
+
 class FlaskAPI(API):
     def __init__(self, repository):  # ✅ Corrige _init_ a __init__
         self.app = Flask(__name__)  # ✅ Corrige _name_ a __name__
-        
+
         # ✅ CORS bien configurado para permitir todas las conexiones
-        CORS(self.app, resources={r"/*": {"origins": "*"}})  
-        
+        CORS(self.app, resources={r"/*": {"origins": "*"}})
+
         # ✅ Configura SocketIO con async_mode adecuado
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*", async_mode="threading")
-        
+        self.socketio = SocketIO(
+            self.app, cors_allowed_origins="*", async_mode="threading")
+
         self.repository = repository
         self.setup_routes()
         self.setup_socket_events()
@@ -32,7 +34,8 @@ class FlaskAPI(API):
         if isinstance(data, dict):
             serialized = {}
             for key, value in data.items():
-                serialized[key] = value.isoformat() if isinstance(value, datetime) else value
+                serialized[key] = value.isoformat() if isinstance(
+                    value, datetime) else value
             return serialized
         return data
 
@@ -105,4 +108,6 @@ class FlaskAPI(API):
 
     def start(self):
         print("🚀 Servidor iniciado en http://0.0.0.0:8029")
-        self.socketio.run(self.app, host="0.0.0.0", port=8029, allow_unsafe_werkzeug=True)  # ✅ Evita errores con Flask en modo debug
+        # ✅ Evita errores con Flask en modo debug
+        self.socketio.run(self.app, host="0.0.0.0",
+                          port=8029, allow_unsafe_werkzeug=True)
